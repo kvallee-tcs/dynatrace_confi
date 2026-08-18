@@ -1,53 +1,53 @@
 resource "dynatrace_slo_v2" "host_cpu" {
   name               = "SLO - Host CPU utilization"
+  custom_description = "% del periodo en que los hosts productivos mantienen CPU < 85%. Parámetro industrial: warning operativo desde 80%, saturación sostenida sobre 90%. Objetivo mensual: 95% de cumplimiento; warning de SLO: 98%."
   enabled            = true
-  custom_description = "% del periodo con uso de CPU de host bajo el umbral (${var.cpu_threshold_pct}%). Saturar el budget significa CPU sostenida alta (riesgo de latencia/capacidad)."
   evaluation_type    = "AGGREGATE"
-  evaluation_window  = var.slo_window
+  evaluation_window  = "-4w"
   filter             = "type(\"HOST\"),not(entityName(\"wnproc-*\"))"
-  metric_expression  = "100*falseToZero(countIf(lt(builtin:host.cpu.usage,${var.cpu_threshold_pct}),true))/count(notNull(builtin:host.cpu.usage))"
-  metric_name        = "slo_host_cpu"
-  target_success     = var.slo_target_pct_cpu
-  target_warning     = var.slo_target_pct_cpu + 0.5
+  metric_expression  = "100*falseToZero(countIf(lt(builtin:host.cpu.usage,85),true))/count(notNull(builtin:host.cpu.usage))"
+  metric_name        = "slo_host_cpu_capacity"
+  target_success     = 95
+  target_warning     = 98
 
   error_budget_burn_rate {
     burn_rate_visualization_enabled = true
-    fast_burn_threshold             = var.warning_burn_rate
+    fast_burn_threshold             = 14.4
   }
 }
 
 resource "dynatrace_slo_v2" "host_memory" {
   name               = "SLO - Host Memory utilization"
+  custom_description = "% del periodo en que los hosts productivos mantienen memoria usada < 90%. Parámetro industrial: presión relevante desde 85%, crítico sobre 95%; para Linux se puede refinar después con memoria disponible/cache si se requiere. Objetivo mensual: 95% de cumplimiento; warning de SLO: 98%."
   enabled            = true
-  custom_description = "% del periodo con uso de memoria bajo el umbral (${var.mem_threshold_pct}%). Saturar indica presión de memoria y riesgo de swap/OOM."
   evaluation_type    = "AGGREGATE"
-  evaluation_window  = var.slo_window
+  evaluation_window  = "-4w"
   filter             = "type(\"HOST\"),not(entityName(\"wnproc-*\"))"
-  metric_expression  = "100*falseToZero(countIf(lt(builtin:host.mem.usage,${var.mem_threshold_pct}),true))/count(notNull(builtin:host.mem.usage))"
-  metric_name        = "slo_host_memory"
-  target_success     = var.slo_target_pct_mem
-  target_warning     = var.slo_target_pct_mem + 0.5
+  metric_expression  = "100*falseToZero(countIf(lt(builtin:host.mem.usage,90),true))/count(notNull(builtin:host.mem.usage))"
+  metric_name        = "slo_host_memory_capacity"
+  target_success     = 95
+  target_warning     = 98
 
   error_budget_burn_rate {
     burn_rate_visualization_enabled = true
-    fast_burn_threshold             = var.warning_burn_rate
+    fast_burn_threshold             = 14.4
   }
 }
 
 resource "dynatrace_slo_v2" "host_disk" {
   name               = "SLO - Host Disk utilization"
+  custom_description = "% del periodo en que los discos de hosts productivos mantienen uso < 85%. Parámetro industrial: warning desde 80-85%, crítico sobre 90%, emergencia sobre 95%. Disco es más estricto porque quedarse sin espacio rompe logs, DBs, colas y despliegues. Objetivo mensual: 99%; warning de SLO: 99.5%."
   enabled            = true
-  custom_description = "% del periodo con uso de disco bajo el umbral (${var.disk_threshold_pct}%). Saturar indica riesgo de quedarse sin espacio."
   evaluation_type    = "AGGREGATE"
-  evaluation_window  = var.slo_window
+  evaluation_window  = "-4w"
   filter             = "type(\"HOST\"),not(entityName(\"wnproc-*\"))"
-  metric_expression  = "100*falseToZero(countIf(lt(builtin:host.disk.used:bool(\"USED\")/builtin:host.disk.capacity:bool(\"USED\")*100,${var.disk_threshold_pct}),true))/count(notNull(builtin:host.disk.used))"
-  metric_name        = "slo_host_disk"
-  target_success     = var.slo_target_pct_disk
-  target_warning     = var.slo_target_pct_disk + 0.5
+  metric_expression  = "100*falseToZero(countIf(lt(builtin:host.disk.used:bool(\"USED\")/builtin:host.disk.capacity:bool(\"USED\")*100,85),true))/count(notNull(builtin:host.disk.used))"
+  metric_name        = "slo_host_disk_capacity"
+  target_success     = 99
+  target_warning     = 99.5
 
   error_budget_burn_rate {
     burn_rate_visualization_enabled = true
-    fast_burn_threshold             = var.warning_burn_rate
+    fast_burn_threshold             = 14.4
   }
 }
